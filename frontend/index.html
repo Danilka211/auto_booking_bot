@@ -287,16 +287,7 @@
         height: 100%;
         background-color: rgba(0,0,0,0.7);
     }
-    
-    /* .modal-content {
-        background-color: var(--card-bg);
-        margin: 5% auto;
-        padding: 20px;
-        border-radius: 14px;
-        max-width: 500px;
-        width: 90%;
-        animation: fadeInUp 0.3s;
-    } */
+
      .modal-content {
     background-color: var(--card-bg);
     margin: 20px auto;
@@ -333,15 +324,6 @@
     object-fit: contain;
 }
 
-    
-    /* .close {
-        color: #aaa;
-        float: right;
-        font-size: 28px;
-        font-weight: bold;
-        cursor: pointer;
-    } */
-
     .close {
     position: absolute;
     top: 15px;
@@ -355,11 +337,6 @@
         color: var(--text-color);
     }
     
-    /* .modal-car-info {
-        text-align: center;
-        margin-bottom: 20px;
-    } */
-
     #edit-time-slots-container {
     max-height: 300px;
     overflow-y: auto;
@@ -592,7 +569,7 @@ button.edit:hover {
     ];
 
     function getCars() {
-        fetch("https://auto-school-bot-mkxv.onrender.com/cars")
+        fetch("https://auto-booking-bot.onrender.com/cars")
             .then(res => res.json())
             .then(data => {
                 const container = document.getElementById("cars-container");
@@ -696,7 +673,7 @@ function loadTimeSlots(carId) {
     }
 
     // Загрузка занятых слотов
-    fetch(`https://auto-school-bot-mkxv.onrender.com/car_bookings?car_id=${carId}&date=${date}`)
+    fetch(`https://auto-booking-bot.onrender.com/car_bookings?car_id=${carId}&date=${date}`)
         .then(res => res.json())
         .then(busySlots => {
             slotsForDay.forEach(slot => {
@@ -739,7 +716,6 @@ function loadTimeSlots(carId) {
         });
 }
 
-
 let currentEditingBooking = null;
 
 // Функция открытия модального окна
@@ -757,7 +733,7 @@ function openEditModal(carId, date, startTime, endTime, model, description, phot
     carDescription.textContent = description;
     
     // Загружаем список машин в выпадающий список
-    fetch("https://auto-school-bot-mkxv.onrender.com/cars")
+    fetch("https://auto-booking-bot.onrender.com/cars")
         .then(res => res.json())
         .then(data => {
             const select = document.getElementById("edit-car-select");
@@ -823,57 +799,12 @@ function openEditModal(carId, date, startTime, endTime, model, description, phot
     closeButton.focus();
 }
 
-// Функция загрузки временных слотов для редактирования
-// function loadEditTimeSlots(carId, date, selectedStartTime = null) {
-//     const slotsContainer = document.getElementById("edit-time-slots-container");
-//     slotsContainer.innerHTML = "";
-    
-//     fetch(`http://127.0.0.1:8000/car_bookings?car_id=${carId}&date=${date}`)
-//         .then(res => res.json())
-//         .then(busySlots => {
-//             const slotsForDay = getAvailableSlotsForDate(date);
-            
-//             slotsForDay.forEach(slot => {
-//                 const [startTime, endTime] = slot.split(' - ');
-//                 const isBusy = busySlots.some(busy => 
-//                     busy.booking_start_time <= startTime && 
-//                     busy.booking_end_time >= endTime &&
-//                     !(currentEditingBooking.startTime === startTime && 
-//                       currentEditingBooking.endTime === endTime)
-//                 );
-                
-//                 const slotElement = document.createElement("div");
-//                 slotElement.className = `time-slot ${isBusy ? 'unavailable' : 'available'}`;
-//                 slotElement.textContent = slot;
-                
-//                 if (!isBusy) {
-//                     slotElement.addEventListener('click', () => {
-//                         document.querySelectorAll('#edit-time-slots-container .time-slot').forEach(s => {
-//                             s.classList.remove('selected');
-//                         });
-//                         slotElement.classList.add('selected');
-//                     });
-                    
-//                     // Выделяем текущий выбранный слот
-//                     if (startTime === selectedStartTime) {
-//                         slotElement.classList.add('selected');
-//                     }
-//                 } else {
-//                     slotElement.title = "⛔ Время уже занято";
-//                 }
-                
-//                 slotsContainer.appendChild(slotElement);
-//             });
-//         });
-// }
-
 let HOLIDAYS = [];
-fetch('https://auto-school-bot-mkxv.onrender.com/holidays')
+fetch('https://auto-booking-bot.onrender.com/holidays')
   .then(res => res.json())
   .then(data => {
     HOLIDAYS = data;
   });
-
 
 function loadEditTimeSlots(carId, date, selectedStartTime = null) {
     const slotsContainer = document.getElementById("edit-time-slots-container");
@@ -906,7 +837,7 @@ function loadEditTimeSlots(carId, date, selectedStartTime = null) {
     }
 
     // Загружаем занятые слоты
-    fetch(`https://auto-school-bot-mkxv.onrender.com/car_bookings?car_id=${carId}&date=${date}`)
+    fetch(`https://auto-booking-bot.onrender.com/car_bookings?car_id=${carId}&date=${date}`)
         .then(res => res.json())
         .then(busySlots => {
             slotsContainer.innerHTML = dayOfWeek === 6 ? saturdayInfo.outerHTML : "";
@@ -968,7 +899,7 @@ function updateCarInfo() {
     const carId = document.getElementById("edit-car-select").value;
     const date = document.getElementById("edit-booking-date").value;
     
-    fetch("https://auto-school-bot-mkxv.onrender.com/cars")
+    fetch("https://auto-booking-bot.onrender.com/cars")
         .then(res => res.json())
         .then(data => {
             const car = data.cars.find(c => c.id == carId);
@@ -1001,7 +932,7 @@ function saveChanges() {
     saveBtn.textContent = "Сохранение...";
     
     // Создаем специальный endpoint для изменения брони
-    fetch("https://auto-school-bot-mkxv.onrender.com/update_booking", {
+    fetch("https://auto-booking-bot.onrender.com/update_booking", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -1032,59 +963,6 @@ function saveChanges() {
         saveBtn.textContent = "Сохранить изменения";
     });
 }
-// function saveChanges() {
-//     const modal = document.getElementById("edit-modal");
-//     const newCarId = document.getElementById("edit-car-select").value;
-//     const newDate = document.getElementById("edit-booking-date").value;
-//     const selectedSlot = document.querySelector('#edit-time-slots-container .selected');
-    
-//     if (!selectedSlot) {
-//         alert("Пожалуйста, выберите временной слот");
-//         return;
-//     }
-    
-//     const [newStartTime, newEndTime] = selectedSlot.textContent.split(' - ');
-    
-//     // Сначала отменяем старое бронирование
-//     fetch("http://127.0.0.1:8000/cancel_booking", {
-//         method: "POST",
-//         headers: { "Content-Type": "application/json" },
-//         body: JSON.stringify({
-//             car_id: currentEditingBooking.carId,
-//             user_name: userName,
-//             user_id: userId,
-//             booking_date: currentEditingBooking.date,
-//             booking_start_time: currentEditingBooking.startTime,
-//             booking_end_time: currentEditingBooking.endTime
-//         })
-//     })
-//     .then(res => res.json())
-//     .then(() => {
-//         // Затем создаем новое бронирование
-//         return fetch("http://127.0.0.1:8000/choose_car", {
-//             method: "POST",
-//             headers: { "Content-Type": "application/json" },
-//             body: JSON.stringify({
-//                 car_id: newCarId,
-//                 user_name: userName,
-//                 user_id: userId,
-//                 booking_date: newDate,
-//                 booking_start_time: newStartTime.trim(),
-//                 booking_end_time: newEndTime.trim()
-//             })
-//         });
-//     })
-//     .then(res => res.json())
-//     .then(data => {
-//         alert(data.message);
-//         modal.style.display = "none";
-//         getCars();
-//         getBookings();
-//     })
-//     .catch(err => {
-//         alert("Ошибка при изменении бронирования: " + (err.detail || JSON.stringify(err)));
-//     });
-// }
 
 // Вспомогательная функция для получения доступных слотов
 function getAvailableSlotsForDate(date) {
@@ -1102,8 +980,6 @@ function getAvailableSlotsForDate(date) {
         return TIME_SLOTS;
     }
 }
-
-
 
 // Вспомогательная функция для получения названия выходного дня
 function getHolidayName(date, dayOfWeek) {
@@ -1126,8 +1002,6 @@ function getHolidayName(date, dayOfWeek) {
     return holidayNames[date] || "Праздничный день";
 }
 
-
-
     function bookCar(carId) {
     const date = document.getElementById(`booking-date-${carId}`).value;
     const selectedSlot = document.querySelector(`#time-slots-${carId} .selected`);
@@ -1139,7 +1013,7 @@ function getHolidayName(date, dayOfWeek) {
     
     const [startTime, endTime] = selectedSlot.textContent.split(' - ');
 
-    fetch("https://auto-school-bot-mkxv.onrender.com/choose_car", {
+    fetch("https://auto-booking-bot.onrender.com/choose_car", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -1179,7 +1053,7 @@ function escapeHtml(unsafe) {
 }
 
     function getBookings() {
-        fetch(`https://auto-school-bot-mkxv.onrender.com/my_bookings?user_id=${userId}`)
+        fetch(`https://auto-booking-bot.onrender.com/my_bookings?user_id=${userId}`)
             .then(res => res.json())
             .then(data => {
                 const container = document.getElementById("bookings-container");
@@ -1215,7 +1089,7 @@ card.innerHTML = `
     function cancelBooking(carId, date, startTime, endTime) {
         if (!confirm("Вы уверены, что хотите отменить бронирование?")) return;
         
-        fetch("https://auto-school-bot-mkxv.onrender.com/cancel_booking", {
+        fetch("https://auto-booking-bot.onrender.com/cancel_booking", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
