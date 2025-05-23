@@ -1002,7 +1002,7 @@ function getHolidayName(date, dayOfWeek) {
     return holidayNames[date] || "Праздничный день";
 }
 
-    function bookCar(carId) {
+function bookCar(carId) {
     const date = document.getElementById(`booking-date-${carId}`).value;
     const selectedSlot = document.querySelector(`#time-slots-${carId} .selected`);
     
@@ -1011,7 +1011,16 @@ function getHolidayName(date, dayOfWeek) {
         return;
     }
     
-    const [startTime, endTime] = selectedSlot.textContent.split(' - ');
+    const [startTime, endTime] = selectedSlot.textContent.split(' - ').map(t => t.trim());
+    
+    // Новая проверка на прошедшее время
+    const bookingDate = new Date(`${date}T${startTime}`);
+    const now = new Date();
+    
+    if (bookingDate < now) {
+        alert("Невозможно забронировать машину на прошедшее время");
+        return;
+    }
 
     fetch("https://auto-booking-bot.onrender.com/choose_car", {
         method: "POST",

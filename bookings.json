@@ -1,1 +1,16 @@
-[]
+[
+    {
+        "car_id": 1,
+        "user_name": "Test Admin",
+        "user_id": 999,
+        "model": "Volkswagen Polo",
+        "description": "Спортивный и стильный седан. Отличается динамичным управлением и высоким комфортом.",
+        "photo_url": "/static/polo.webp",
+        "booking_date": "2025-05-26",
+        "booking_start_time": "15:00",
+        "booking_end_time": "16:00",
+        "id": 1,
+        "start_time": "2025-05-23T11:07",
+        "end_time": "2025-05-23T12:13"
+    }
+]

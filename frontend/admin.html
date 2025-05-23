@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Админка автошколы</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <title>Админка - Бронирование машин</title>
+    <style>
+        /* body { font-family: Arial, sans-serif; padding: 20px; }
+        table { border-collapse: collapse; width: 100%; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #f2f2f2; }
+        .actions { display: flex; gap: 5px; }
+        button { padding: 5px 10px; cursor: pointer; } */
+        :root {
+            --bg-color: #121212;
+            --card-bg: #1e1e1e;
+            --text-color: #e0e0e0;
+            --accent-color: #4caf50;
+            --accent-hover: #388e3c;
+            --cancel-color: #e53935;
+            --cancel-hover: #b71c1c;
+            --border-color: #333;
+        }
+        
+        html.light {
+            --bg-color: #f5f5f5;
+            --card-bg: #ffffff;
+            --text-color: #1c1c1c;
+            --accent-color: #2196f3;
+            --accent-hover: #1976d2;
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            padding: 20px;
+            margin: 0;
+            transition: background-color 0.3s;
+        }
+        .admin-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 20px 0;
+    font-size: 15px;
+}
+
+.admin-table th, .admin-table td {
+    padding: 12px 15px;
+    border: 1px solid var(--border-color);
+    text-align: left;
+}
+
+.admin-table th {
+    background-color: var(--card-bg);
+    font-weight: 600;
+}
+
+.car-image {
+    width: 60px;
+    height: 40px;
+    object-fit: cover;
+    border-radius: 4px;
+    margin-right: 10px;
+    vertical-align: middle;
+}
+
+.car-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+/* Стили кнопок */
+.edit-btn {
+    background-color: var(--accent-color);
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.time-slots {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.time-slot {
+    padding: 10px;
+    border-radius: 8px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.time-slot.available {
+    background-color: var(--available-slot);
+    color: white;
+}
+
+.time-slot.unavailable {
+    background-color: var(--unavailable-slot);
+    color: white;
+    cursor: not-allowed;
+}
+
+.time-slot.current {
+    background-color: var(--accent-color);
+    color: white;
+    font-weight: bold;
+}
+
+.time-slot.selected {
+    transform: scale(1.05);
+    box-shadow: 0 0 0 2px var(--accent-color);
+}
+
+.loading, .error {
+    padding: 10px;
+    text-align: center;
+    grid-column: 1 / -1;
+}
+
+.error {
+    color: var(--cancel-color);
+}
+
+
+.edit-btn:hover {
+    background-color: var(--accent-hover);
+}
+
+.cancel-btn {
+    background-color: var(--cancel-color);
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.cancel-btn:hover {
+    background-color: var(--cancel-hover);
+}
+
+/* Стили модального окна */
+#edit-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0,0,0,0.7);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#edit-modal > div {
+    background-color: var(--card-bg);
+    border-radius: 14px;
+    padding: 20px;
+    width: 90%;
+    max-width: 500px;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-control {
+    width: 100%;
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+    background-color: var(--bg-color);
+    color: var(--text-color);
+}
+
+.loading {
+    color: var(--accent-color);
+    text-align: center;
+    padding: 20px;
+}
+
+.error {
+    color: var(--cancel-color);
+    text-align: center;
+    padding: 20px;
+}
+    </style>
+</head>
+<body>
+    <h1>Панель администратора</h1>
+    <input type="password" id="admin-password" placeholder="Введите пароль">
+    <button onclick="loadBookings()">Загрузить бронирования</button>
+    
+    <div id="bookings-list">
+        <!-- Сюда загрузим бронирования -->
+    </div>
+
+    <script>
+        const TIME_SLOTS = [
+    "09:00 - 10:00",
+    "10:00 - 11:00",
+    "11:00 - 12:00",
+    "12:00 - 13:00",
+    "13:00 - 14:00",
+    "14:00 - 15:00",
+    "15:00 - 16:00",
+    "16:00 - 17:00",
+    "17:00 - 18:00"
+];
+
+        const API_URL = "http://localhost:8000"; // Для локальной разработки
+        let allCars = []; // Для хранения списка машин
+
+// Загрузка списка машин
+
+async function loadCars() {
+    try {
+        const response = await fetch(`${API_URL}/cars`);
+        if (!response.ok) throw new Error('Ошибка загрузки машин');
+        const data = await response.json();
+        allCars = data.cars;
+        console.log('Машины загружены:', allCars); // Для отладки
+    } catch (error) {
+        console.error('Ошибка загрузки машин:', error);
+        // Можно показать сообщение пользователю
+    }
+}
+
+async function loadEditTimeSlots() {
+    const container = document.getElementById('time-slots-edit');
+    if (!container) return;
+
+    const date = document.getElementById('edit-date').value;
+    const carId = document.getElementById('edit-car-id').value;
+    const bookingId = document.getElementById('edit-booking-id').value;
+
+    try {
+        container.innerHTML = '<div class="loading">Загрузка слотов...</div>';
+        
+        // Получаем текущие данные бронирования из формы
+        const currentStart = document.querySelector('#edit-start-time')?.value || '';
+        const currentEnd = document.querySelector('#edit-end-time')?.value || '';
+        
+        const res = await fetch(`${API_URL}/car_bookings?car_id=${carId}&date=${date}`);
+        if (!res.ok) throw new Error('Ошибка сервера');
+        const busySlots = await res.json();
+        
+        container.innerHTML = '';
+        
+        TIME_SLOTS.forEach(slot => {
+            const [start, end] = slot.split(' - ');
+            const isCurrent = (start === currentStart && end === currentEnd);
+            const isBusy = busySlots.some(b => 
+                b.booking_start_time <= start && 
+                b.booking_end_time >= end &&
+                !(b.booking_start_time === currentStart && 
+                  b.booking_end_time === currentEnd)
+            );
+            
+            const slotEl = document.createElement('div');
+            slotEl.className = `time-slot ${isBusy ? 'unavailable' : isCurrent ? 'current' : 'available'}`;
+            slotEl.textContent = slot;
+            
+            if (!isBusy) {
+                slotEl.onclick = () => {
+                    document.querySelectorAll('#time-slots-edit .time-slot').forEach(s => {
+                        s.classList.remove('selected');
+                    });
+                    slotEl.classList.add('selected');
+                    // Сохраняем выбранное время в скрытые поля
+                    document.getElementById('edit-start-time').value = start;
+                    document.getElementById('edit-end-time').value = end;
+                };
+            }
+            
+            container.appendChild(slotEl);
+        });
+        
+    } catch (error) {
+        console.error('Ошибка загрузки слотов:', error);
+        container.innerHTML = '<div class="error">Ошибка загрузки слотов</div>';
+    }
+}
+
+
+
+
+
+
+async function openEditModal(bookingId) {
+    const booking = bookings.find(b => b.id === bookingId);
+    if (!booking) {
+        alert('Бронирование не найдено');
+        return;
+    }
+
+    // Загружаем список машин, чтобы заполнить селект (если ещё не загружен)
+    if (!window.allCars) {
+        window.allCars = await loadCars();
+    }
+
+    const allCars = window.allCars;
+
+    const form = `
+        <input type="hidden" id="edit-booking-id" value="${booking.id}">
+
+        <div class="form-group">
+            <label>Машина:</label>
+            <select id="edit-car-id" class="form-control">
+                ${allCars.map(car => `
+                    <option value="${car.id}" ${car.id === booking.car_id ? 'selected' : ''}>
+                        ${car.model}
+                    </option>
+                `).join('')}
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label>Дата:</label>
+            <input type="date" id="edit-date" value="${booking.booking_date}" class="form-control">
+        </div>
+
+        <!-- Скрытые поля для выбранного времени -->
+        <input type="hidden" id="edit-start-time" value="${booking.booking_start_time || ''}">
+        <input type="hidden" id="edit-end-time" value="${booking.booking_end_time || ''}">
+
+        <div class="form-group">
+            <label>Доступные слоты:</label>
+            <div id="time-slots-edit" class="time-slots">
+                <div class="loading">Загрузка слотов...</div>
+            </div>
+        </div>
+
+        <button class="save-btn" onclick="saveBookingChanges()">Сохранить</button>
+    `;
+
+    document.getElementById('edit-form-content').innerHTML = form;
+    document.getElementById('edit-modal').style.display = 'block';
+
+    // После отображения формы подгружаем слоты для выбранной машины и даты
+    // Обновим слоты при смене машины или даты
+    document.getElementById('edit-car-id').onchange = loadEditTimeSlots;
+    document.getElementById('edit-date').onchange = loadEditTimeSlots;
+
+    await loadEditTimeSlots();
+}
+
+ loadEditTimeSlots();
+
+
+function selectTimeSlot(start, end) {
+    document.querySelectorAll('#time-slots-edit .time-slot').forEach(slot => {
+        slot.classList.remove('selected');
+    });
+    
+    const selectedSlot = [...document.querySelectorAll('#time-slots-edit .time-slot')]
+        .find(slot => slot.textContent.includes(start));
+    
+    if (selectedSlot) {
+        selectedSlot.classList.add('selected');
+    }
+}
+
+function closeEditModal() {
+    document.getElementById('edit-modal').style.display = 'none';
+}
+
+// Сохранение изменений
+async function saveBookingChanges() {
+    const bookingId = document.getElementById('edit-booking-id').value;
+    const newCarId = document.getElementById('edit-car-id').value;
+    const newDate = document.getElementById('edit-date').value;
+    const newStart = document.getElementById('edit-start-time').value;
+    const newEnd = document.getElementById('edit-end-time').value;
+    const password = document.getElementById('admin-password').value;
+    
+    if (!newStart || !newEnd) {
+        alert('Выберите временной слот');
+        return;
+    }
+
+    try {
+        const response = await fetch(`${API_URL}/admin/update_booking?password=${password}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                booking_id: parseInt(bookingId),
+                new_car_id: parseInt(newCarId),
+                new_date: newDate,
+                new_start_time: newStart,
+                new_end_time: newEnd
+            })
+        });
+        
+        if (!response.ok) throw await response.json();
+        
+        alert('Бронирование успешно обновлено!');
+        document.getElementById('edit-modal').style.display = 'none';
+        loadBookings();
+    } catch (error) {
+        alert(error.detail || 'Ошибка при обновлении бронирования');
+    }
+}
+// Инициализация при загрузке
+document.addEventListener('DOMContentLoaded', async () => {
+    await loadCars();
+    // ... остальной код инициализации ...
+});
+        
+async function loadBookings() {
+    const password = document.getElementById('admin-password').value;
+    const container = document.getElementById('bookings-list');
+    
+    if (!password) {
+        container.innerHTML = "<p class='error'>Введите пароль</p>";
+        return;
+    }
+
+    container.innerHTML = "<div class='loading'>Загрузка...</div>";
+    
+    try {
+        const response = await fetch(`${API_URL}/admin/all_bookings?password=${encodeURIComponent(password)}`);
+        
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.detail || "Ошибка сервера");
+        }
+        
+        const data = await response.json();
+        
+        if (data.bookings && data.bookings.length > 0) {
+            renderBookings(data.bookings);
+        } else {
+            container.innerHTML = "<p>Нет активных бронирований</p>";
+        }
+    } catch (error) {
+        console.error("Ошибка:", error);
+        container.innerHTML = `<p class='error'>${error.message || "Ошибка загрузки"}</p>`;
+    }
+}
+        
+function renderBookings(bookings) {
+    const container = document.getElementById('bookings-list');
+    if (!container) {
+        console.error('Элемент bookings-list не найден');
+        return;
+    }
+
+    let html = `
+        <table class="admin-table">
+            <tr>
+                <th>ID</th>
+                <th>Машина</th>
+                <th>Пользователь</th>
+                <th>Дата</th>
+                <th>Время</th>
+                <th>Действия</th>
+            </tr>
+    `;
+    
+    bookings.forEach(booking => {
+        html += `
+            <tr>
+                <td>${booking.id}</td>
+                <td class="car-info">
+                    <img src="${booking.photo_url}" alt="${booking.model}" class="car-image">
+                    <div>${booking.model}</div>
+                </td>
+                <td>${booking.user_name}<br><small>ID: ${booking.user_id}</small></td>
+                <td>${booking.booking_date}</td>
+                <td>${booking.booking_start_time} - ${booking.booking_end_time}</td>
+                <td class="actions">
+                    <button class="edit-btn" onclick="openEditModal(${JSON.stringify(booking).replace(/"/g, '&quot;')})">
+                        ✏️ Редактировать
+                    </button>
+                    <button class="cancel-btn" onclick="cancelBooking(${booking.id})">
+                        ❌ Отменить
+                    </button>
+                </td>
+            </tr>
+        `;
+    });
+    
+    html += "</table>";
+    container.innerHTML = html;
+}
+        
+        async function cancelBooking(bookingId) {
+            if (!confirm("Вы уверены, что хотите отменить это бронирование?")) return;
+            
+            const password = document.getElementById('admin-password').value;
+            
+            try {
+                const response = await fetch(`${API_URL}/admin/cancel_booking?password=${password}&booking_id=${bookingId}`, {
+                    method: 'POST'
+                });
+                
+                if (!response.ok) throw await response.json();
+                
+                alert("Бронирование отменено");
+                loadBookings();
+            } catch (error) {
+                alert(error.detail || "Ошибка отмены");
+            }
+        }
+    </script>
+    <div id="edit-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000;">
+    <div style="background:white; margin:50px auto; padding:20px; width:80%; max-width:500px; border-radius:10px;">
+        <h2>Редактирование бронирования</h2>
+        <div id="edit-form-content"></div>
+        <button onclick="closeEditModal()" style="margin-top:15px;">Закрыть</button>
+    </div>
+</div>
+</body>
+</html>

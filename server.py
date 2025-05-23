@@ -181,52 +181,49 @@ async def update_booking(data: UpdateBookingRequest):
 async def choose_car(data: BookingRequest):
     # Проверка на выходные и праздники
     booking_date = datetime.strptime(data.booking_date, "%Y-%m-%d").date()
-    if booking_date.weekday() == 6 or data.booking_date in HOLIDAYS:  # Воскресенье или праздник
-        raise HTTPException(
-            status_code=400,
-            detail="Бронь в выходной день недоступна."
-        )
+    if booking_date.weekday() == 6 or data.booking_date in HOLIDAYS:
+        raise HTTPException(status_code=400, detail="Бронь в выходной день недоступна.")
 
-    # Проверка на субботу (короткий день)
-    if booking_date.weekday() == 5:  # Суббота
+    # Проверка на субботу
+    if booking_date.weekday() == 5:
         if data.booking_start_time < "10:00" or data.booking_end_time > "18:00":
-            raise HTTPException(
-                status_code=400,
-                detail="В субботу бронь доступна только с 10:00 до 18:00."
-            )
+            raise HTTPException(status_code=400, detail="В субботу бронь доступна только с 10:00 до 18:00.")
 
-    # Проверка на обеденный перерыв
+    # Проверка на обед
     if data.booking_start_time == "12:00" and data.booking_end_time == "13:00":
-        raise HTTPException(
-            status_code=400,
-            detail="Бронь на обеденный перерыв недоступна."
-        )
+        raise HTTPException(status_code=400, detail="Бронь на обеденный перерыв недоступна.")
 
-    # Проверка лимита бронирований (3 на пользователя)
+    # Проверка лимита бронирований
     user_bookings_count = sum(1 for b in bookings if b["user_id"] == data.user_id)
     if user_bookings_count >= 3:
-        raise HTTPException(
-            status_code=400,
-            detail="Вы уже забронировали 3 машины. Отмените одну из них."
-        )
+        raise HTTPException(status_code=400, detail="Вы уже забронировали 3 машины. Отмените одну из них.")
 
-    # Проверка корректности времени
+    # Основные проверки времени
+    now = datetime.now()
     booking_start = datetime.strptime(f"{data.booking_date} {data.booking_start_time}", "%Y-%m-%d %H:%M")
     booking_end = datetime.strptime(f"{data.booking_date} {data.booking_end_time}", "%Y-%m-%d %H:%M")
     
-    if booking_start < datetime.now():
+    if booking_start < now.replace(second=0, microsecond=0):
         raise HTTPException(
             status_code=400,
-            detail="Невозможно забронировать машину на прошедшее время."
+            detail=f"Невозможно забронировать на прошедшее время. Текущее время: {now.strftime('%H:%M')}"
         )
+        
+    if booking_start.date() == now.date():
+        min_advance_time = now + timedelta(minutes=30)
+        if booking_start < min_advance_time:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Бронирование должно быть минимум на 30 минут позже текущего времени ({now.strftime('%H:%M')})"
+            )
 
     if booking_start >= booking_end:
-        raise HTTPException(
-            status_code=400,
-            detail="Время начала бронирования должно быть раньше времени окончания."
-        )
+        raise HTTPException(status_code=400, detail="Время начала должно быть раньше времени окончания.")
 
-    # Проверка пересечений с существующими бронированиями
+    if (booking_end - booking_start) < timedelta(minutes=30):
+        raise HTTPException(status_code=400, detail="Минимальная длительность бронирования - 30 минут")
+
+    # Проверка пересечений
     for b in bookings:
         if b["car_id"] == data.car_id and b["booking_date"] == data.booking_date:
             existing_start = datetime.strptime(f"{b['booking_date']} {b['booking_start_time']}", "%Y-%m-%d %H:%M")
