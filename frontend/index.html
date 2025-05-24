@@ -809,58 +809,76 @@ fetch('https://auto-booking-bot.onrender.com/holidays')
     HOLIDAYS = data;
   });
 
-let saturdayInfo = null;
+// let saturdayInfo = null;
 
 function loadEditTimeSlots(carId, date, selectedStartTime = null) {
     const slotsContainer = document.getElementById("edit-time-slots-container");
     slotsContainer.innerHTML = "Загрузка слотов...";
     
-    // Проверка на выходные и праздники
+    // Проверка на валидность даты
     const dateObj = new Date(date);
+    if (isNaN(dateObj.getTime())) {
+        slotsContainer.innerHTML = '<div class="error">Неверный формат даты</div>';
+        return;
+    }
+
     const dayOfWeek = dateObj.getDay();
     const isHoliday = HOLIDAYS.includes(date) || dayOfWeek === 0;
 
+    // Очищаем контейнер
+    slotsContainer.innerHTML = "";
+
+    // Обработка праздников и выходных
     if (isHoliday) {
         const holidayName = getHolidayName(date, dayOfWeek);
-        slotsContainer.innerHTML = `<div class="time-slot holiday-day">🚫 ${holidayName} — бронь недоступна</div>`;
+        const holidayBlock = document.createElement("div");
+        holidayBlock.className = "time-slot holiday-day";
+        holidayBlock.textContent = `🚫 ${holidayName} — бронь недоступна`;
+        slotsContainer.appendChild(holidayBlock);
         return;
+    }
+
+    // Обработка субботы
+    if (dayOfWeek === 6) {
+        const saturdayBlock = document.createElement("div");
+        saturdayBlock.className = "time-slot saturday-short-day";
+        saturdayBlock.style.gridColumn = "1 / -1";
+        saturdayBlock.textContent = "⏳ Суббота — короткий день (10:00-18:00, без обеда)";
+        slotsContainer.appendChild(saturdayBlock);
     }
 
     // Получаем слоты для дня (с учетом субботы)
     let slotsForDay = TIME_SLOTS;
-    if (dayOfWeek === 6) { // Суббота
+    if (dayOfWeek === 6) {
         slotsForDay = TIME_SLOTS.filter(slot => {
             const [start] = slot.split(' - ');
             return start >= '10:00' && start < '18:00' && slot !== '12:00 - 13:00';
         });
-        
-        const saturdayInfo = document.createElement("div");
-        saturdayInfo.className = "time-slot saturday-short-day";
-        saturdayInfo.style.gridColumn = "1 / -1";
-        saturdayInfo.textContent = "⏳ Суббота — короткий день (10:00-18:00, без обеда)";
-        slotsContainer.appendChild(saturdayInfo);
     }
 
     // Загружаем занятые слоты
     fetch(`https://auto-booking-bot.onrender.com/car_bookings?car_id=${carId}&date=${date}`)
-        .then(res => res.json())
+        .then(res => {
+            if (!res.ok) throw new Error(`Ошибка HTTP: ${res.status}`);
+            return res.json();
+        })
         .then(busySlots => {
-            slotsContainer.innerHTML = dayOfWeek === 6 ? saturdayInfo.outerHTML : "";
-            
             slotsForDay.forEach(slot => {
                 const [startTime, endTime] = slot.split(' - ');
                 
-                // Исключаем текущее редактируемое бронирование из занятых слотов
+                // Проверяем, не текущее ли это бронирование
+                const isCurrentSlot = currentEditingBooking && 
+                                     startTime === currentEditingBooking.startTime && 
+                                     endTime === currentEditingBooking.endTime;
+                
+                // Проверяем занятость слота (исключая текущее бронирование)
                 const isBusy = busySlots.some(busy => 
+                    !isCurrentSlot &&
                     busy.booking_start_time <= startTime && 
-                    busy.booking_end_time >= endTime &&
-                    !(busy.booking_start_time === currentEditingBooking.startTime && 
-                      busy.booking_end_time === currentEditingBooking.endTime)
+                    busy.booking_end_time >= endTime
                 );
                 
                 const isLunchBreak = slot === '12:00 - 13:00' && dayOfWeek !== 6;
-                const isCurrentSlot = startTime === currentEditingBooking.startTime && 
-                                    endTime === currentEditingBooking.endTime;
                 
                 const slotElement = document.createElement("div");
                 slotElement.className = `time-slot ${
@@ -870,6 +888,7 @@ function loadEditTimeSlots(carId, date, selectedStartTime = null) {
                 }`;
                 slotElement.textContent = slot;
                 
+                // Добавляем подсказки
                 if (isLunchBreak) {
                     slotElement.title = "🍴 Обеденный перерыв (12:00-13:00)";
                 } else if (isBusy) {
@@ -884,19 +903,14 @@ function loadEditTimeSlots(carId, date, selectedStartTime = null) {
                         });
                         slotElement.classList.add('selected');
                     });
-                    
-                    // Выделяем текущий выбранный слот
-                    if (startTime === selectedStartTime) {
-                        slotElement.classList.add('selected');
-                    }
                 }
                 
                 slotsContainer.appendChild(slotElement);
             });
         })
         .catch(err => {
-            slotsContainer.innerHTML = `<div class="error">Ошибка загрузки слотов</div>`;
             console.error("Ошибка загрузки слотов:", err);
+            slotsContainer.innerHTML = `<div class="error">Ошибка: ${err.message}</div>`;
         });
 }
 // Функция обновления информации о машине при выборе
