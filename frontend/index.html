@@ -568,6 +568,8 @@ button.edit:hover {
         '20:00 - 21:00'
     ];
 
+
+
     function getCars() {
         fetch("https://auto-booking-bot.onrender.com/cars")
             .then(res => res.json())
@@ -655,6 +657,7 @@ function loadTimeSlots(carId) {
         return;
     }
 
+    let saturdayInfo = null;
     // Генерация слотов для субботы
     if (dayOfWeek === 6) { // Суббота
         slotsForDay = TIME_SLOTS.filter(slot => {
@@ -805,6 +808,8 @@ fetch('https://auto-booking-bot.onrender.com/holidays')
   .then(data => {
     HOLIDAYS = data;
   });
+
+let saturdayInfo = null;
 
 function loadEditTimeSlots(carId, date, selectedStartTime = null) {
     const slotsContainer = document.getElementById("edit-time-slots-container");
