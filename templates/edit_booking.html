@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Редактировать бронирование</title>
+     <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            padding: 25px;
+            max-width: 800px;
+            margin: 0 auto;
+            line-height: 1.6;
+            color: #333;
+        }
+        
+        h2 {
+            color: #2c3e50;
+            margin-bottom: 25px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #3498db;
+        }
+        
+        form {
+            background: #f9f9f9;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+        
+        input[type="text"],
+        input[type="date"],
+        select {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 20px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 16px;
+            transition: border 0.3s;
+        }
+        
+        input[type="text"]:focus,
+        input[type="date"]:focus,
+        select:focus {
+            border-color: #3498db;
+            outline: none;
+        }
+        
+    /* Обновлённые стили для временных слотов */
+    .time-slots {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 20px; /* Увеличили расстояние между слотами */
+        margin: 25px 0;
+    }
+
+    .time-slot {
+        padding: 18px 12px; /* Увеличили внутренние отступы */
+        border-radius: 12px; /* Более скруглённые углы */
+        text-align: center;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1); /* Более выраженная тень */
+        border: 2px solid transparent; /* Добавили прозрачную границу */
+        margin: 5px 0; /* Дополнительный внешний отступ */
+    }
+
+    /* Усилили визуальные различия между состояниями */
+    .time-slot.available {
+        background-color: #27ae60;
+        color: white;
+        border-color: #2ecc71; /* Зелёная граница */
+    }
+
+    .time-slot.unavailable {
+        background-color: #e74c3c;
+        color: white;
+        cursor: not-allowed;
+        border-color: #c0392b; /* Тёмно-красная граница */
+        opacity: 0.8;
+    }
+
+    .time-slot.selected {
+        background-color: #3498db;
+        color: white;
+        transform: scale(1.03);
+        border-color: #2980b9; /* Синяя граница */
+        box-shadow: 0 6px 12px rgba(52, 152, 219, 0.3);
+    }
+
+    .time-slot.lunch-break {
+        background: linear-gradient(135deg, #e67e22, #d35400);
+        color: white;
+        cursor: not-allowed;
+        border-color: #e67e22; /* Оранжевая граница */
+    }
+
+    .time-slot.holiday {
+        background: linear-gradient(135deg, #ff416c, #e74c3c);
+        color: white;
+        cursor: not-allowed;
+        border-color: #ff416c; /* Розовая граница */
+    }
+
+    /* Увеличили отступы для информационных блоков */
+    .info-block {
+        padding: 20px;
+        margin: 20px 0;
+        border-radius: 12px;
+    }
+        
+        .holiday-day {
+            background: linear-gradient(135deg, #ff5e62, #ff2400);
+            grid-column: 1 / -1;
+        }
+        
+        .saturday-info {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            grid-column: 1 / -1;
+        }
+        
+        #car_info {
+            margin: 20px 0;
+            padding: 15px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+        
+        #car_photo {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            display: block;
+            margin: 0 auto 15px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+        }
+        
+        button[type="submit"] {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 14px 25px;
+            font-size: 16px;
+            font-weight: 600;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            width: 100%;
+            margin-top: 20px;
+        }
+        
+        button[type="submit"]:hover {
+            background-color: #2980b9;
+        }
+        
+        a {
+            display: inline-block;
+            margin-top: 20px;
+            color: #3498db;
+            text-decoration: none;
+            font-weight: 600;
+        }
+        
+        a:hover {
+            text-decoration: underline;
+        }
+        
+ /* Адаптация для мобильных */
+    @media (max-width: 600px) {
+        .time-slots {
+            grid-template-columns: 1fr;
+            gap: 15px;
+        }
+        
+        .time-slot {
+            padding: 16px 10px;
+        }
+    }
+    </style>
+</head>
+<body>
+    <h2>Редактировать бронирование ID {{ booking.booking_id }}</h2>
+    <form method="post" action="/admin/edit/{{ booking.booking_id }}">
+        {% if error %}
+<div class="alert alert-danger">
+    {{ error }}
+</div>
+{% endif %}
+        <label>Модель машины:</label>
+        <!-- Замените этот блок в форме -->
+<select id="car_model" name="car_id" required>
+    {% for car in cars %}
+        <option value="{{ car.car_id }}" 
+                data-description="{{ car.description }}" 
+                data-photo="{{ car.photo_url }}"
+                {% if car.car_id == booking.car_id %}selected{% endif %}>
+            {{ car.model }}
+        </option>
+    {% endfor %}
+</select>
+
+        <div id="car_info">
+            <img id="car_photo" src="{{ booking.photo_url }}" alt="Фото машины">
+            <p id="car_description">{{ booking.description }}</p>
+        </div>
+
+        <input type="hidden" id="car_model_input" name="model" value="{{ booking.model }}">
+        <input type="hidden" id="car_description_input" name="description" value="{{ booking.description }}">
+        <input type="hidden" id="car_photo_input" name="photo_url" value="{{ booking.photo_url }}">
+
+        <label>Имя пользователя:</label>
+        <input type="text" name="user_name" value="{{ booking.user_name }}" required>
+
+        <label>Дата бронирования:</label>
+        <input type="date" id="booking_date" name="booking_date" value="{{ booking.booking_date }}" required>
+
+        <div id="time-slots-container">
+            <!-- Здесь будут отображаться временные слоты -->
+        </div>
+
+        <input type="hidden" id="booking_start_time" name="booking_start_time" value="{{ booking.booking_start_time }}">
+        <input type="hidden" id="booking_end_time" name="booking_end_time" value="{{ booking.booking_end_time }}">
+
+        <button type="submit">Сохранить изменения</button>
+    </form>
+    <a href="/admin">← Назад к списку</a>
+
+
+<script>
+    const TIME_SLOTS = [
+        '08:00 - 09:00',
+        '09:00 - 10:00',
+        '10:00 - 11:00',
+        '11:00 - 12:00',
+        '12:00 - 13:00',
+        '13:00 - 14:00',
+        '14:00 - 15:00',
+        '15:00 - 16:00',
+        '16:00 - 17:00',
+        '17:00 - 18:00',
+        '18:00 - 19:00',
+        '19:00 - 20:00',
+        '20:00 - 21:00'
+    ];
+
+    const HOLIDAYS = [
+        "2025-01-01", "2025-01-02", "2025-01-03", "2025-01-04", 
+        "2025-01-06", "2025-01-07", "2025-01-08", "2025-03-08", 
+        "2025-05-01", "2025-05-02", "2025-05-03", "2025-05-08",
+        "2025-05-09", "2025-05-10", "2025-06-12", "2025-06-13",
+        "2025-06-14", "2025-11-03", "2025-11-04", "2025-12-31"
+    ];
+
+    const carSelect = document.getElementById('car_model');
+    const carDescription = document.getElementById('car_description');
+    const carPhoto = document.getElementById('car_photo');
+    const carDescriptionInput = document.getElementById('car_description_input');
+    const carPhotoInput = document.getElementById('car_photo_input');
+    const bookingDate = document.getElementById('booking_date');
+    const timeSlotsContainer = document.getElementById('time-slots-container');
+    const startTimeInput = document.getElementById('booking_start_time');
+    const endTimeInput = document.getElementById('booking_end_time');
+
+    // Обновление информации о машине при изменении выбора
+carSelect.addEventListener('change', function() {
+    const selectedOption = carSelect.options[carSelect.selectedIndex];
+    const description = selectedOption.getAttribute('data-description');
+    const photo = selectedOption.getAttribute('data-photo');
+    const model = selectedOption.text; // Получаем название модели из текста option
+
+    // Обновляем отображение
+    carDescription.textContent = description;
+    carPhoto.src = photo;
+    
+    // Обновляем скрытые поля формы
+    carDescriptionInput.value = description;
+    carPhotoInput.value = photo;
+    
+    // Добавьте это новое поле в ваш HTML (см. ниже)
+    document.getElementById('car_model_input').value = model;
+
+    // Обновляем слоты при смене машины
+    if (bookingDate.value) {
+        loadTimeSlots(bookingDate.value);
+    }
+});
+
+    // Загрузка слотов при изменении даты
+    bookingDate.addEventListener('change', function() {
+        loadTimeSlots(this.value);
+    });
+
+    // Инициализация слотов при загрузке страницы
+    if (bookingDate.value) {
+        loadTimeSlots(bookingDate.value);
+    }
+
+    function loadTimeSlots(date) {
+        const carId = carSelect.value;
+        const dateObj = new Date(date);
+        const dayOfWeek = dateObj.getDay();
+        const isHoliday = HOLIDAYS.includes(date) || dayOfWeek === 0;
+
+        timeSlotsContainer.innerHTML = '';
+
+        // Проверка на выходные и праздники
+        if (isHoliday) {
+            const holidayName = getHolidayName(date, dayOfWeek);
+            const holidayBlock = document.createElement('div');
+            holidayBlock.className = 'holiday-day';
+            holidayBlock.textContent = `🚫 ${holidayName} — бронь недоступна`;
+            timeSlotsContainer.appendChild(holidayBlock);
+            return;
+        }
+
+        // Проверка на субботу
+        if (dayOfWeek === 6) {
+            const saturdayBlock = document.createElement('div');
+            saturdayBlock.className = 'saturday-info';
+            saturdayBlock.textContent = '⏳ Суббота — короткий день (10:00-18:00, без обеда)';
+            timeSlotsContainer.appendChild(saturdayBlock);
+        }
+
+        // Получаем актуальные слоты для выбранной даты
+        let slotsForDay = TIME_SLOTS;
+        if (dayOfWeek === 6) {
+            slotsForDay = TIME_SLOTS.filter(slot => {
+                const [start] = slot.split(' - ');
+                return start >= '10:00' && start < '18:00' && slot !== '12:00 - 13:00';
+            });
+        }
+
+        // Загружаем занятые слоты с сервера
+        fetch(`/car_bookings?car_id=${carId}&date=${date}`)
+            .then(res => res.json())
+            .then(busySlots => {
+                // Ищем текущее бронирование (которое редактируем)
+                const currentBooking = {
+                    start: '{{ booking.booking_start_time }}',
+                    end: '{{ booking.booking_end_time }}'
+                };
+
+                slotsForDay.forEach(slot => {
+                    const [startTime, endTime] = slot.split(' - ');
+                    const isCurrentSlot = currentBooking.start === startTime.trim() && 
+                                         currentBooking.end === endTime.trim();
+                    
+                    // Проверяем занятость слота (исключая текущее бронирование)
+                    const isBusy = busySlots.some(busy => 
+                        !isCurrentSlot &&
+                        busy.booking_start_time <= startTime && 
+                        busy.booking_end_time >= endTime
+                    );
+                    
+                    const isLunchBreak = slot === '12:00 - 13:00' && dayOfWeek !== 6;
+
+                    const slotElement = document.createElement('div');
+                    slotElement.className = `time-slot ${
+                        isLunchBreak ? 'lunch-break' : 
+                        isBusy ? 'unavailable' : 
+                        isCurrentSlot ? 'selected' : 'available'
+                    }`;
+                    slotElement.textContent = slot;
+
+                    if (isCurrentSlot) {
+                        startTimeInput.value = startTime.trim();
+                        endTimeInput.value = endTime.trim();
+                    }
+
+                    if (!isBusy && !isLunchBreak) {
+                        slotElement.addEventListener('click', () => {
+                            document.querySelectorAll('.time-slot').forEach(s => {
+                                s.classList.remove('selected');
+                            });
+                            slotElement.classList.add('selected');
+                            startTimeInput.value = startTime.trim();
+                            endTimeInput.value = endTime.trim();
+                        });
+                    }
+
+                    timeSlotsContainer.appendChild(slotElement);
+                });
+            });
+    }
+
+    function getHolidayName(date, dayOfWeek) {
+        if (dayOfWeek === 0) return "Воскресенье";
+        const holidayNames = {
+            "2025-01-01": "Новый год",
+            "2025-01-07": "Рождество",
+            "2025-03-08": "Международный женский день",
+            "2025-05-01": "День труда",
+            "2025-05-09": "День Победы",
+            "2025-06-12": "День России",
+            "2025-11-04": "День народного единства"
+        };
+        return holidayNames[date] || "Праздничный день";
+
+        // Принудительная загрузка слотов при открытии
+window.onload = function() {
+    const dateInput = document.getElementById('booking_date');
+    if (dateInput.value) {
+        loadTimeSlots(dateInput.value);
+    }
+};
+    }
+
+    // Проверка даты перед отправкой формы
+document.querySelector('form').addEventListener('submit', function(e) {
+    const dateInput = document.getElementById('booking_date');
+    const timeInput = document.getElementById('booking_start_time');
+    
+    const selectedDate = new Date(`${dateInput.value}T${timeInput.value}`);
+    const now = new Date();
+    
+    if (selectedDate < now) {
+        e.preventDefault();
+        alert('Невозможно забронировать на прошедшее время!');
+        return false;
+    }
+    
+    return true;
+});
+</script>
+</body>
+</html>

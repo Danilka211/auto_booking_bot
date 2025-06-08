@@ -1,0 +1,37 @@
+[
+    {
+        "car_id": 1,
+        "model": "Toyota Corolla",
+        "description": "Удобный и экономичный седан. Простой в обслуживании, надёжный на любых дорогах. ",
+        "photo_url": "/static/toyota.webp",
+        "available": true
+    },
+    {
+        "car_id": 2,
+        "model": "BMW 3 Series",
+        "description": "Спортивный и стильный седан. Отличается динамичным управлением и высоким комфортом.",
+        "photo_url": "/static/bmw.webp",
+        "available": true
+    },
+    {
+        "car_id": 3,
+        "model": "Volkswagen Polo ",
+        "description": "Немецкое качество. Устойчив на дороге и прост в обслуживании.",
+        "photo_url": "/static/polo.webp",
+        "available": true
+    },
+    {
+        "car_id": 4,
+        "model": "Hyundai Solaris",
+        "description": "Популярный учебный авто. Комфортный и манёвренный.",
+        "photo_url": "/static/solaris.jpg",
+        "available": true
+    },
+    {
+        "car_id": 5,
+        "model": "Kia Rio ",
+        "description": "Надёжный и экономичный седан. Лёгок в управлении. ",
+        "photo_url": "/static/kio.jpg",
+        "available": true
+    }
+]

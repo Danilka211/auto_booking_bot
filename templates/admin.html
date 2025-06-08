@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Админ-панель бронирований</title>
+    <style>
+        :root {
+            --primary: #5e35b1;
+            --primary-light: #7e57c2;
+            --secondary: #1e88e5;
+            --danger: #e53935;
+            --success: #43a047;
+            --warning: #fb8c00;
+            --light: #f5f5f5;
+            --dark: #263238;
+            --gray: #eceff1;
+            --text: #37474f;
+            --border: #cfd8dc;
+            --shadow-sm: 0 1px 3px rgba(0,0,0,0.12);
+            --shadow-md: 0 4px 6px rgba(0,0,0,0.1);
+            --shadow-lg: 0 10px 15px rgba(0,0,0,0.1);
+            --radius-sm: 6px;
+            --radius-md: 10px;
+            --radius-lg: 14px;
+            --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: 'Segoe UI', 'Roboto', -apple-system, BlinkMacSystemFont, sans-serif;
+            line-height: 1.6;
+            color: var(--text);
+            background-color: #fafafa;
+            padding: 0;
+            margin: 0;
+        }
+        
+        .admin-header {
+            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+            color: white;
+            padding: 1.5rem 2rem;
+            box-shadow: var(--shadow-md);
+            margin-bottom: 2rem;
+        }
+        
+        .admin-title {
+            font-size: 1.8rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        .admin-title span {
+            font-size: 1rem;
+            opacity: 0.9;
+            font-weight: 400;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+        
+        .bookings-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 3rem;
+        }
+        
+        .booking-card {
+            background: white;
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow-sm);
+            overflow: hidden;
+            transition: var(--transition);
+            border: 1px solid var(--border);
+        }
+        
+        .booking-card:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-lg);
+        }
+        
+        .card-header {
+            background: linear-gradient(135deg, var(--secondary), #42a5f5);
+            color: white;
+            padding: 1rem 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .booking-id {
+            font-weight: 700;
+            font-size: 1.1rem;
+            letter-spacing: 0.5px;
+        }
+        
+        .booking-status {
+            background: rgba(255,255,255,0.2);
+            padding: 0.25rem 0.75rem;
+            border-radius: 50px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+        
+        .card-body {
+            padding: 1.5rem;
+            display: grid;
+            grid-template-columns: 120px 1fr;
+            gap: 1.5rem;
+        }
+        
+        .car-image {
+            width: 100%;
+            height: auto;
+            border-radius: var(--radius-sm);
+            object-fit: cover;
+            aspect-ratio: 4/3;
+            box-shadow: var(--shadow-sm);
+        }
+        
+        .car-details {
+            display: flex;
+            flex-direction: column;
+            gap: 0.8rem;
+        }
+        
+        .detail-row {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .detail-label {
+            font-size: 0.75rem;
+            color: #78909c;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 0.25rem;
+        }
+        
+        .detail-value {
+            font-weight: 500;
+            word-break: break-word;
+        }
+        
+        .car-model {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--dark);
+            margin-bottom: 0.5rem;
+        }
+        
+        .car-description {
+            font-size: 0.9rem;
+            color: #546e7a;
+            line-height: 1.5;
+            margin-bottom: 1rem;
+        }
+        
+        .divider {
+            height: 1px;
+            background: var(--border);
+            margin: 1rem 0;
+            opacity: 0.5;
+        }
+        
+        .user-info {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            padding: 0 1.5rem 1.5rem;
+        }
+        
+        .booking-time {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            padding: 0 1.5rem 1.5rem;
+        }
+        
+        .card-footer {
+            display: flex;
+            border-top: 1px solid var(--border);
+        }
+        
+        .action-btn {
+            flex: 1;
+            padding: 0.75rem;
+            border: none;
+            background: none;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+        
+        .action-btn:hover {
+            transform: none;
+            opacity: 0.9;
+        }
+        
+        .edit-btn {
+            color: var(--secondary);
+            border-right: 1px solid var(--border);
+        }
+        
+        .delete-btn {
+            color: var(--danger);
+        }
+        
+        .empty-state {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 3rem;
+            color: #78909c;
+        }
+        
+        .empty-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            opacity: 0.3;
+        }
+
+.nav-link {
+    display: inline-flex;
+    align-items: center;
+    margin: 1rem 0;
+    padding: 0.7rem 1.5rem;
+    background-color: #f0f8ff; /* Светло-голубой фон */
+    color: #2c5282; /* Темно-синий текст */
+    text-decoration: none;
+    border-radius: var(--border-radius);
+    transition: var(--transition);
+    font-weight: 500;
+    border: 1px solid #bee3f8; /* Светло-голубая граница */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.nav-link:hover {
+    background-color: #ebf8ff; /* Чуть темнее голубой при наведении */
+    color: #2b6cb0;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(49, 130, 206, 0.1);
+    border-color: #90cdf4;
+}
+
+.nav-link:active {
+    transform: translateY(0);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.nav-link i {
+    margin-right: 0.75rem;
+    color: #4299e1; /* Синий цвет для иконки */
+}
+        
+        @media (max-width: 768px) {
+            .bookings-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .card-body {
+                grid-template-columns: 1fr;
+            }
+            
+            .car-image {
+                max-width: 200px;
+                margin: 0 auto;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .container {
+                padding: 0 1rem;
+            }
+            
+            .admin-title {
+                font-size: 1.4rem;
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0.5rem;
+            }
+            
+            .user-info, .booking-time {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="admin-header">
+        <div class="admin-title">
+            Управление бронированиями
+            <span>Всего броней: {{ bookings|length }}</span>
+        </div>
+           <a href="/admin/cars" class="nav-link">
+        <i class="fas fa-arrow-left"></i> Машины
+    </a>
+    </header>
+    
+    <div class="container">
+        {% if bookings %}
+        <div class="bookings-grid">
+            {% for b in bookings %}
+            <div class="booking-card">
+                <div class="card-header">
+                    <div class="booking-id">Бронирование #{{ b.booking_id }}</div>
+                    <div class="booking-status">Активно</div>
+                </div>
+                
+                <div class="card-body">
+                    <img src="{{ b.photo_url }}" alt="{{ b.model }}" class="car-image">
+                    <div class="car-details">
+                        <h3 class="car-model">{{ b.model }}</h3>
+                        <p class="car-description">{{ b.description }}</p>
+                        
+                        <div class="detail-row">
+                            <span class="detail-label">Car ID</span>
+                            <span class="detail-value">{{ b.car_id }}</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="divider"></div>
+                
+                <div class="user-info">
+                    <div class="detail-row">
+                        <span class="detail-label">Имя пользователя</span>
+                        <span class="detail-value">{{ b.user_name }}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">ID пользователя</span>
+                        <span class="detail-value">{{ b.user_id }}</span>
+                    </div>
+                </div>
+                
+                <div class="booking-time">
+                    <div class="detail-row">
+                        <span class="detail-label">Дата</span>
+                        <span class="detail-value">{{ b.booking_date }}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Время</span>
+                        <span class="detail-value">{{ b.booking_start_time }} - {{ b.booking_end_time }}</span>
+                    </div>
+                </div>
+                
+                <div class="card-footer">
+                    <form method="get" action="/admin/edit/{{ b.booking_id }}" style="flex:1">
+                        <button type="submit" class="action-btn edit-btn">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path>
+                            </svg>
+                            Редактировать
+                        </button>
+                    </form>
+                    <form method="post" action="/admin/delete/{{ b.booking_id }}" onsubmit="return confirm('Вы уверены, что хотите удалить бронирование #{{ b.booking_id }}?');" style="flex:1">
+                        <button type="submit" class="action-btn delete-btn">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                            </svg>
+                            Удалить
+                        </button>
+                    </form>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <div class="empty-icon">🚗</div>
+            <h3>Нет активных бронирований</h3>
+            <p>Здесь будут отображаться все созданные брони</p>
+        </div>
+        {% endif %}
+    </div>
+</body>
+</html>
