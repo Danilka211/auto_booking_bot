@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!-- <!DOCTYPE html>
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
@@ -293,6 +293,362 @@
                 {% if car.available %}Доступна{% else %}Недоступна{% endif %}
             </span>
         </form>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        
+        <a href="/admin/cars/add" class="btn btn-primary add-car-btn">Добавить машину</a>
+    </div>
+</body>
+</html> -->
+
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Список машин | Админ-панель</title>
+    <style>
+        :root {
+            --primary: #4361ee;
+            --secondary: #3f37c9;
+            --accent: #4895ef;
+            --danger: #f72585;
+            --success: #4cc9f0;
+            --available: #38b000;
+            --unavailable: #e63946;
+            --light: #f8f9fa;
+            --dark: #212529;
+            --gray: #6c757d;
+            --border-radius: 8px;
+            --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            --transition: all 0.3s ease;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #f5f7fa;
+            color: var(--dark);
+            line-height: 1.6;
+            padding: 10px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 10px;
+        }
+
+        h1 {
+            color: var(--primary);
+            margin-bottom: 20px;
+            text-align: center;
+            font-weight: 600;
+            font-size: 24px;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 8px 12px;
+            border: none;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            text-align: center;
+            text-decoration: none;
+            transition: var(--transition);
+            margin: 3px 0;
+            width: 100%;
+        }
+
+        .btn-primary {
+            background-color: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--secondary);
+            transform: translateY(-2px);
+        }
+
+        .btn-danger {
+            background-color: var(--danger);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            opacity: 0.9;
+            transform: translateY(-2px);
+        }
+
+        .btn-available {
+            background-color: var(--available);
+            color: white;
+        }
+
+        .btn-unavailable {
+            background-color: var(--unavailable);
+            color: white;
+        }
+
+        .btn-back {
+            background-color: var(--gray);
+            color: white;
+            margin-bottom: 15px;
+            width: auto;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .btn-back:hover {
+            background-color: #5a6268;
+            transform: translateY(-2px);
+        }
+
+        .table-responsive {
+            width: 100%;
+            margin-bottom: 20px;
+            box-shadow: var(--shadow);
+            border-radius: var(--border-radius);
+            background: white;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 10px 8px;
+            text-align: left;
+            border-bottom: 1px solid #e0e0e0;
+            display: block;
+            width: 100%;
+        }
+
+        thead {
+            display: none;
+        }
+
+        tr {
+            display: block;
+            margin-bottom: 15px;
+            border-radius: var(--border-radius);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            padding: 10px;
+            position: relative;
+        }
+
+        tr:hover {
+            background-color: rgba(67, 97, 238, 0.05);
+        }
+
+        td::before {
+            content: attr(data-label);
+            font-weight: bold;
+            display: inline-block;
+            width: 120px;
+            color: var(--primary);
+        }
+
+        img.car-image {
+            width: 100%;
+            max-width: 150px;
+            height: auto;
+            border-radius: 4px;
+            object-fit: cover;
+            transition: var(--transition);
+            display: block;
+            margin: 5px 0;
+        }
+
+        img.car-image:hover {
+            transform: scale(1.05);
+        }
+
+        .action-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .add-car-btn {
+            display: block;
+            width: 100%;
+            margin: 20px auto;
+            padding: 10px 15px;
+            font-size: 16px;
+        }
+
+        .nav-link {
+            display: inline-flex;
+            align-items: center;
+            margin: 0.5rem 0;
+            padding: 0.6rem 1rem;
+            background-color: var(--light);
+            color: var(--dark);
+            text-decoration: none;
+            border-radius: var(--border-radius);
+            transition: var(--transition);
+            font-weight: 500;
+            border: 1px solid #dee2e6;
+        }
+
+        .nav-link:hover {
+            background-color: var(--primary);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: var(--shadow);
+            border-color: var(--primary);
+        }
+
+        .status-badge {
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            margin-left: 8px;
+            display: inline-block;
+        }
+
+        .status-badge.available {
+            background-color: #d4edda;
+            color: #155724;
+        }
+
+        .status-badge.unavailable {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+
+        .btn-unavailable {
+            background-color: #dc3545;
+        }
+
+        .btn-available {
+            background-color: #28a745;
+        }
+
+        form {
+            width: 100%;
+        }
+
+        /* Десктопная версия */
+        @media (min-width: 768px) {
+            body {
+                padding: 20px;
+            }
+            
+            h1 {
+                font-size: 28px;
+                margin-bottom: 25px;
+            }
+            
+            .btn {
+                width: auto;
+                padding: 8px 16px;
+                margin: 3px;
+            }
+            
+            table {
+                display: table;
+            }
+            
+            thead {
+                display: table-header-group;
+            }
+            
+            tr {
+                display: table-row;
+                margin-bottom: 0;
+                box-shadow: none;
+                padding: 0;
+            }
+            
+            th, td {
+                display: table-cell;
+                padding: 12px 15px;
+                width: auto;
+            }
+            
+            td::before {
+                display: none;
+            }
+            
+            .action-buttons {
+                flex-direction: row;
+                flex-wrap: wrap;
+            }
+            
+            .add-car-btn {
+                width: fit-content;
+                padding: 10px 25px;
+            }
+            
+            img.car-image {
+                width: 100px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Список машин</h1>
+        <a href="/admin" class="btn btn-back">
+            <i class="fas fa-arrow-left"></i> Вернуться к бронированиям
+        </a>
+        
+        <div class="table-responsive">
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Модель</th>
+                        <th>Описание</th>
+                        <th>Фото</th>
+                        <th>Действия</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for car in cars %}
+                    <tr>
+                        <td data-label="ID">{{ car.car_id }}</td>
+                        <td data-label="Модель">{{ car.model }}</td>
+                        <td data-label="Описание">{{ car.description }}</td>
+                        <td data-label="Фото"><img src="{{ car.photo_url }}" alt="Фото" class="car-image"></td>
+                        <td data-label="Действия">
+                            <div class="action-buttons">
+                                <a href="/admin/cars/edit/{{ car.car_id }}" class="btn btn-primary">Редактировать</a>
+                                
+                                <form method="post" action="/admin/cars/delete/{{ car.car_id }}" onsubmit="return confirm('Удалить машину ID {{ car.car_id }}?');">
+                                    <button type="submit" class="btn btn-danger">Удалить</button>
+                                </form>
+                                
+                                <form method="post" action="/admin/cars/toggle/{{ car.car_id }}">
+                                    {% if car.available %}
+                                        <button type="submit" class="btn btn-unavailable">
+                                            <i class="fas fa-eye-slash"></i> Сделать недоступной
+                                        </button>
+                                    {% else %}
+                                        <button type="submit" class="btn btn-available">
+                                            <i class="fas fa-eye"></i> Сделать доступной
+                                        </button>
+                                    {% endif %}
+                                    <span class="status-badge {% if car.available %}available{% else %}unavailable{% endif %}">
+                                        {% if car.available %}Доступна{% else %}Недоступна{% endif %}
+                                    </span>
+                                </form>
                             </div>
                         </td>
                     </tr>
