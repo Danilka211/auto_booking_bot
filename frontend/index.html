@@ -655,7 +655,7 @@ button.edit:hover {
     ];
 
 function getCars() {
-    fetch("/cars")
+    fetch("https://auto-booking-bot.onrender.com/cars")
         .then(res => res.json())
         .then(data => {
             const container = document.getElementById("cars-container");
@@ -770,7 +770,7 @@ function loadTimeSlots(carId) {
     }
 
     // Загрузка занятых слотов
- fetch(`http://127.0.0.1:8000/car_bookings?car_id=${carId}&date=${date}`)
+ fetch(`https://auto-booking-bot.onrender.com/car_bookings?car_id=${carId}&date=${date}`)
         .then(res => res.json())
         .then(busySlots => {
             slotsForDay.forEach(slot => {
@@ -830,7 +830,7 @@ function openEditModal(carId, date, startTime, endTime, model, description, phot
     carDescription.textContent = description;
     
     // Загружаем список машин в выпадающий список
-fetch("http://127.0.0.1:8000/cars")
+fetch("https://auto-booking-bot.onrender.com/cars")
     .then(res => res.json())
     .then(data => {
         const select = document.getElementById("edit-car-select");
@@ -897,7 +897,7 @@ fetch("http://127.0.0.1:8000/cars")
 }
 
 let HOLIDAYS = [];
-fetch('http://127.0.0.1:8000/holidays')
+fetch('https://auto-booking-bot.onrender.com/holidays')
   .then(res => res.json())
   .then(data => {
     HOLIDAYS = data;
@@ -950,7 +950,7 @@ function loadEditTimeSlots(carId, date, selectedStartTime = null) {
     }
 
     // Загружаем занятые слоты
-    fetch(`http://127.0.0.1:8000/car_bookings?car_id=${carId}&date=${date}`)
+    fetch(`https://auto-booking-bot.onrender.com/car_bookings?car_id=${carId}&date=${date}`)
         .then(res => {
             if (!res.ok) throw new Error(`Ошибка HTTP: ${res.status}`);
             return res.json();
@@ -1013,7 +1013,7 @@ function updateCarInfo() {
     const dateInput = document.getElementById("edit-booking-date");
     const currentDate = dateInput.value;
     
-    fetch("http://127.0.0.1:8000/cars")
+    fetch("https://auto-booking-bot.onrender.com/cars")
         .then(res => res.json())
         .then(data => {
             // 1. Проверяем формат ответа (массив или объект с ключом 'cars')
@@ -1079,7 +1079,7 @@ function saveChanges() {
 
     console.log("Отправка данных:", requestData);  // Для отладки
 
-    fetch("http://127.0.0.1:8000/update_booking", {
+    fetch("https://auto-booking-bot.onrender.com/update_booking", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(requestData)
@@ -1164,7 +1164,7 @@ function bookCar(carId) {
         return;
     }
 
-    fetch("http://127.0.0.1:8000/choose_car", {
+    fetch("https://auto-booking-bot.onrender.com/choose_car", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -1204,7 +1204,7 @@ function escapeHtml(unsafe) {
 }
 
     function getBookings() {
-        fetch(`http://127.0.0.1:8000/my_bookings?user_id=${userId}`)
+        fetch(`https://auto-booking-bot.onrender.com/my_bookings?user_id=${userId}`)
             .then(res => res.json())
             .then(data => {
                 const container = document.getElementById("bookings-container");
@@ -1240,7 +1240,7 @@ card.innerHTML = `
     function cancelBooking(carId, date, startTime, endTime) {
         if (!confirm("Вы уверены, что хотите отменить бронирование?")) return;
         
-        fetch("http://127.0.0.1:8000/cancel_booking", {
+        fetch("https://auto-booking-bot.onrender.com/cancel_booking", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
