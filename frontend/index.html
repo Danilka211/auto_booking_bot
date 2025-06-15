@@ -487,6 +487,37 @@ button.edit:hover {
     gap: 8px;
 }
 
+ @media (max-width: 768px) {
+        .card img {
+            max-height: 370px;
+        }
+        
+        .time-slots {
+            grid-template-columns: 1fr;
+        }
+        
+        .buttons-container {
+            flex-direction: column;
+        }
+        
+        .buttons-container button {
+            width: 100%;
+        }
+        
+        h2 {
+            font-size: 22px;
+        }
+        
+        .card h3 {
+            font-size: 18px;
+        }
+        
+        input[type="date"] {
+            padding: 14px 12px;
+            font-size: 16px;
+        }
+    }
+
 @media (max-height: 700px) {
     .modal-content {
         max-height: 80vh;
@@ -516,37 +547,6 @@ button.edit:hover {
     }
 }
 
-    @media (max-width: 768px) {
-        .card img {
-            max-height: 220px;
-        }
-        
-        .time-slots {
-            grid-template-columns: 1fr;
-        }
-        
-        .buttons-container {
-            flex-direction: column;
-        }
-        
-        .buttons-container button {
-            width: 100%;
-        }
-        
-        h2 {
-            font-size: 22px;
-        }
-        
-        .card h3 {
-            font-size: 18px;
-        }
-        
-        input[type="date"] {
-            padding: 14px 12px;
-            font-size: 16px;
-        }
-    }
-
     @media (max-width: 480px) {
         body {
             padding: 10px 8px;
@@ -557,7 +557,7 @@ button.edit:hover {
         }
         
         .card img {
-            max-height: 180px;
+            max-height: 240px;
         }
         
         .theme-toggle {
