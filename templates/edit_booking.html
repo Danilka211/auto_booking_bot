@@ -195,7 +195,7 @@
     {{ error }}
 </div>
 {% endif %}
-        <label>Модель машины:</label>
+        <label>Имя инструктора:</label>
         <!-- Замените этот блок в форме -->
 <select id="car_model" name="car_id" required>
     {% for car in cars %}
@@ -209,7 +209,7 @@
 </select>
 
         <div id="car_info">
-            <img id="car_photo" src="{{ booking.photo_url }}" alt="Фото машины">
+            <img id="car_photo" src="{{ booking.photo_url }}" alt="Фото инструктора">
             <p id="car_description">{{ booking.description }}</p>
         </div>
 
@@ -285,7 +285,6 @@ carSelect.addEventListener('change', function() {
     carDescriptionInput.value = description;
     carPhotoInput.value = photo;
     
-    // Добавьте это новое поле в ваш HTML (см. ниже)
     document.getElementById('car_model_input').value = model;
 
     // Обновляем слоты при смене машины

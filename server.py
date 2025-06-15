@@ -5,12 +5,15 @@
 # from typing import List
 # from fastapi.middleware.cors import CORSMiddleware
 # from pydantic import BaseModel
+# from fastapi.templating import Jinja2Templates
+# from fastapi import Request, Form
 # from datetime import datetime
+# from fastapi.responses import RedirectResponse
+# from fastapi import status
+# from pathlib import Path
 # import pathlib
 # import json
 # import os
-
-# # TELEGRAM_BOT_TOKEN = "7946576799:AAHHd35iRAv317TGUY6dBAfG8f3VKEXuy1w"
 
 # app = FastAPI()
 
@@ -23,23 +26,11 @@
 # )
 
 # app.mount("/static", StaticFiles(directory="static"), name="static")
-
-
-# cars = [
-#     {"id": 1, "model": "Toyota Corolla", "description": "Удобный и экономичный седан. Простой в обслуживании, надёжный на любых дорогах.",
-#      "photo_url": "/static/toyota.webp", "available": True},
-#     {"id": 2, "model": "BMW 3 Series", "description": "Спортивный и стильный седан. Отличается динамичным управлением и высоким комфортом.",
-#      "photo_url": "/static/bmw.webp", "available": True},
-#     {"id": 3, "model": "Volkswagen Polo", "description": "Немецкое качество. Устойчив на дороге и прост в обслуживании.",
-#     "photo_url": "/static/polo.webp", "available": True},
-#     {"id": 4, "model": "Hyundai Solaris", "description": "Популярный учебный авто. Комфортный и манёвренный.",
-#     "photo_url": "/static/solaris.jpg", "available": True},
-#     {"id": 5, "model": "Kia Rio", "description": "Надёжный и экономичный седан. Лёгок в управлении.",
-#     "photo_url": "/static/kio.jpg", "available": True}
-# ]
+# templates = Jinja2Templates(directory="templates")
 
 # bookings = []
 # BOOKINGS_FILE = "bookings.json"
+# CARS_FILE = "cars.json"
 # HOLIDAYS = ["2025-01-01",
 # "2025-01-02",
 # "2025-01-03", 
@@ -62,10 +53,26 @@
 # "2025-12-31"
 # ]
 
+# next_booking_id = 1
+
 # def load_bookings():
+#     global next_booking_id
+#     bookings.clear()  # очищаем глобальный список
+#     max_id = 0
 #     if os.path.exists(BOOKINGS_FILE):
 #         with open(BOOKINGS_FILE, "r", encoding="utf-8") as f:
-#             bookings[:] = json.load(f)
+#             loaded_bookings = json.load(f)
+#             for b in loaded_bookings:
+#                 if "booking_id" not in b:
+#                     b["booking_id"] = next_booking_id
+#                     next_booking_id += 1
+#                 else:
+#                     if b["booking_id"] > max_id:
+#                         max_id = b["booking_id"]
+#                 bookings.append(b)
+#             if max_id >= next_booking_id:
+#                 next_booking_id = max_id + 1
+#     return bookings
 
 # def save_bookings():
 #     with open(BOOKINGS_FILE, "w", encoding="utf-8") as f:
@@ -73,12 +80,210 @@
 
 # load_bookings()
 
+
+
+# def load_cars():
+#     if not os.path.exists(CARS_FILE):
+#         return []
+#     with open(CARS_FILE, "r", encoding="utf-8") as f:
+#         return json.load(f)
+
+# @app.get("/admin/cars", response_class=HTMLResponse)
+# def view_cars(request: Request):
+#     cars = load_cars()
+#     return templates.TemplateResponse("admin_cars.html", {"request": request, "cars": cars})
+
+# @app.post("/admin/cars/delete/{car_id}")
+# def delete_car(car_id: int):
+#     with open("cars.json", "r", encoding="utf-8") as f:
+#         cars = json.load(f)
+
+#     new_cars = [car for car in cars if car["car_id"] != car_id]
+
+#     with open("cars.json", "w", encoding="utf-8") as f:
+#         json.dump(new_cars, f, indent=4, ensure_ascii=False)
+
+#     return RedirectResponse(url="/admin/cars", status_code=303)
+
+# @app.get("/admin/cars/edit/{car_id}", response_class=HTMLResponse)
+# def edit_car_form(car_id: int):
+#     with open("cars.json", "r", encoding="utf-8") as f:
+#         cars = json.load(f)
+
+#     car = next((c for c in cars if c["car_id"] == car_id), None)
+#     if not car:
+#         return HTMLResponse("Машина не найдена", status_code=404)
+
+#     return templates.TemplateResponse("edit_car.html", {"request": {}, "car": car})
+
+# @app.post("/admin/cars/edit/{car_id}")
+# def edit_car_submit(car_id: int, model: str = Form(...), description: str = Form(...), photo_url: str = Form(...)):
+#     with open("cars.json", "r", encoding="utf-8") as f:
+#         cars = json.load(f)
+
+#     for car in cars:
+#         if car["car_id"] == car_id:
+#             car["model"] = model
+#             car["description"] = description
+#             car["photo_url"] = photo_url
+#             break
+
+#     with open("cars.json", "w", encoding="utf-8") as f:
+#         json.dump(cars, f, indent=4, ensure_ascii=False)
+
+#     return RedirectResponse(url="/admin/cars", status_code=303)
+
+# @app.get("/admin/cars/add", response_class=HTMLResponse)
+# def add_car_form(request: Request):
+#     return templates.TemplateResponse("add_car.html", {"request": request})
+
+# @app.post("/admin/cars/add")
+# def add_car(model: str = Form(...), description: str = Form(...), photo_url: str = Form(...)):
+#     with open("cars.json", "r", encoding="utf-8") as f:
+#         cars = json.load(f)
+
+#     # Новый car_id
+#     if cars:
+#         new_id = max(car["car_id"] for car in cars) + 1
+#     else:
+#         new_id = 1
+
+#     new_car = {
+#         "car_id": new_id,
+#         "model": model,
+#         "description": description,
+#         "photo_url": photo_url,
+#         "available": True
+#     }
+#     cars.append(new_car)
+
+#     with open("cars.json", "w", encoding="utf-8") as f:
+#         json.dump(cars, f, indent=4, ensure_ascii=False)
+
+#     return RedirectResponse(url="/admin/cars", status_code=303)
+
+# @app.post("/admin/cars/toggle/{car_id}")
+# def toggle_car_availability(car_id: int):
+#     with open("cars.json", "r", encoding="utf-8") as f:
+#         cars = json.load(f)
+
+#     for car in cars:
+#         if car["car_id"] == car_id:
+#             car["available"] = not car.get("available", True)
+#             break
+
+#     with open("cars.json", "w", encoding="utf-8") as f:
+#         json.dump(cars, f, indent=4, ensure_ascii=False)
+
+#     return RedirectResponse(url="/admin/cars", status_code=303)
+
 # @app.get("/holidays")
 # def get_holidays():
 #     return HOLIDAYS
 
-
 # BASE_DIR = pathlib.Path(__file__).parent.resolve()
+
+# @app.get("/admin")
+# async def admin_page(request: Request):
+#     return templates.TemplateResponse("admin.html", {"request": request, "bookings": bookings})
+
+# @app.post("/admin/delete/{booking_id}")
+# async def delete_booking(booking_id: int):
+#     global bookings
+#     bookings = [b for b in bookings if b.get("booking_id") != booking_id]
+#     save_bookings()
+#     return RedirectResponse(url="/admin", status_code=status.HTTP_303_SEE_OTHER)
+
+# @app.get("/admin/edit/{booking_id}")
+# def edit_booking_form(request: Request, booking_id: int):
+#     bookings = load_bookings()
+#     booking = next((b for b in bookings if b["booking_id"] == booking_id), None)
+#     if not booking:
+#         return HTMLResponse(content=f"<h3>Бронирование с ID {booking_id} не найдено</h3>", status_code=404)
+    
+#     # Загружаем список машин из cars.json
+#     try:
+#         with open("cars.json", "r", encoding="utf-8") as file:
+#             cars = json.load(file)
+#     except FileNotFoundError:
+#         cars = []  # Если файла нет, используем пустой список
+    
+#     return templates.TemplateResponse("edit_booking.html", {
+#         "request": request,
+#         "booking": booking,
+#         "cars": cars  # Теперь переменная определена
+#     })
+
+# @app.post("/admin/edit/{booking_id}")
+# async def edit_booking(
+#     booking_id: int,
+#     request: Request,
+#     car_id: str = Form(...),
+#     user_name: str = Form(...),
+#     model: str = Form(...),
+#     booking_date: str = Form(...),
+#     booking_start_time: str = Form(...),
+#     booking_end_time: str = Form(...),
+#     description: str = Form(...),
+#     photo_url: str = Form(...)
+# ):
+#     try:
+#         # Проверка на прошедшее время
+#         booking_datetime = datetime.strptime(
+#             f"{booking_date} {booking_start_time}", 
+#             "%Y-%m-%d %H:%M"
+#         )
+#         if booking_datetime < datetime.now():
+#             return templates.TemplateResponse(
+#                 "edit_booking.html",
+#                 {
+#                     "request": request,
+#                     "error": "Невозможно забронировать на прошедшее время",
+#                     "booking": {
+#                         "booking_id": booking_id,
+#                         "car_id": car_id,
+#                         "user_name": user_name,
+#                         "model": model,
+#                         "booking_date": booking_date,
+#                         "booking_start_time": booking_start_time,
+#                         "booking_end_time": booking_end_time,
+#                         "description": description,
+#                         "photo_url": photo_url
+#                     },
+#                     "cars": load_cars()
+#                 },
+#                 status_code=400
+#             )
+#     except ValueError:
+#         pass  # Пропускаем ошибки парсинга даты (их обработают другие проверки)
+
+#     # Остальная логика без изменений
+#     try:
+#         car_id_int = int(car_id)
+#     except ValueError:
+#         return {"error": "car_id должен быть числом"}
+        
+#     global bookings
+#     load_bookings()
+#     booking = next((b for b in bookings if b["booking_id"] == booking_id), None)
+#     if not booking:
+#         return HTMLResponse(content=f"<h3>Бронирование с ID {booking_id} не найдено</h3>", status_code=404)
+
+#     # Обновляем данные бронирования
+#     booking.update({
+#         "user_name": user_name,
+#         "model": model,
+#         "car_id": car_id_int,
+#         "description": description,
+#         "photo_url": photo_url,
+#         "booking_date": booking_date,
+#         "booking_start_time": booking_start_time,
+#         "booking_end_time": booking_end_time
+#     })
+
+#     save_bookings()
+
+#     return RedirectResponse(url="/admin", status_code=303)
 
 # @app.get("/")
 # async def get_index():
@@ -88,7 +293,9 @@
 
 # @app.get("/cars")
 # async def get_cars():
+#     cars = load_cars()
 #     return {"cars": cars}
+
 
 # class BookingRequest(BaseModel):
 #     car_id: int
@@ -120,7 +327,15 @@
 
 # @app.post("/update_booking")
 # async def update_booking(data: UpdateBookingRequest):
-#     # 1. Отменяем старое бронирование
+#     global next_booking_id  # используем глобальную переменную
+#     global cars  # добавляем глобальную переменную cars
+
+#     # 1. Проверяем существование cars
+#     if 'cars' not in globals():
+#         with open("cars.json", "r", encoding="utf-8") as f:
+#             cars = json.load(f)  # загружаем данные о машинах
+
+#     # 2. Отменяем старое бронирование (исправлено обращение к полям)
 #     cancel_booking = next(
 #         (b for b in bookings 
 #          if b["user_id"] == data.user_id 
@@ -136,8 +351,9 @@
     
 #     bookings.remove(cancel_booking)
     
-#     # 2. Создаем новое бронирование (с проверками)
+#     # 3. Создаем новое бронирование (с проверками)
 #     new_booking = {
+#         "booking_id": next_booking_id,
 #         "car_id": data.new_car_id,
 #         "user_name": data.user_name,
 #         "user_id": data.user_id,
@@ -145,6 +361,8 @@
 #         "booking_start_time": data.new_start_time,
 #         "booking_end_time": data.new_end_time
 #     }
+
+#     next_booking_id += 1
     
 #     # Проверяем доступность нового слота
 #     booking_start = datetime.strptime(f"{data.new_date} {data.new_start_time}", "%Y-%m-%d %H:%M")
@@ -161,8 +379,8 @@
 #                     detail="Машина уже забронирована в выбранный интервал времени."
 #                 )
     
-#     # Добавляем новое бронирование
-#     selected_car = next((car for car in cars if car["id"] == data.new_car_id), None)
+#     # 4. Добавляем данные машины (исправлено car["id"] на car["car_id"])
+#     selected_car = next((car for car in cars if car["car_id"] == data.new_car_id), None)
 #     if not selected_car:
 #         raise HTTPException(status_code=404, detail="Машина не найдена")
     
@@ -172,78 +390,58 @@
 #         "photo_url": selected_car["photo_url"]
 #     })
     
+#     # 5. Сохраняем изменения
 #     bookings.append(new_booking)
-#     save_bookings()
+#     save_bookings()  # убедитесь, что эта функция определена
     
 #     return {"status": "success", "message": "Бронирование успешно обновлено"}
 
 # @app.post("/choose_car")
 # async def choose_car(data: BookingRequest):
-#     # Проверка на выходные и праздники
+#     global next_booking_id  # чтобы менять глобальную переменную
+
+#     # ЗАГРУЗКА МАШИН ИЗ JSON
+#     with open("cars.json", "r", encoding="utf-8") as f:
+#         cars = json.load(f)
+
+#     # --- Проверки ---
 #     booking_date = datetime.strptime(data.booking_date, "%Y-%m-%d").date()
-#     if booking_date.weekday() == 6 or data.booking_date in HOLIDAYS:  # Воскресенье или праздник
-#         raise HTTPException(
-#             status_code=400,
-#             detail="Бронь в выходной день недоступна."
-#         )
+#     if booking_date.weekday() == 6 or data.booking_date in HOLIDAYS:
+#         raise HTTPException(status_code=400, detail="Бронь в выходной день недоступна.")
 
-#     # Проверка на субботу (короткий день)
-#     if booking_date.weekday() == 5:  # Суббота
+#     if booking_date.weekday() == 5:
 #         if data.booking_start_time < "10:00" or data.booking_end_time > "18:00":
-#             raise HTTPException(
-#                 status_code=400,
-#                 detail="В субботу бронь доступна только с 10:00 до 18:00."
-#             )
+#             raise HTTPException(status_code=400, detail="В субботу бронь доступна только с 10:00 до 18:00.")
 
-#     # Проверка на обеденный перерыв
 #     if data.booking_start_time == "12:00" and data.booking_end_time == "13:00":
-#         raise HTTPException(
-#             status_code=400,
-#             detail="Бронь на обеденный перерыв недоступна."
-#         )
+#         raise HTTPException(status_code=400, detail="Бронь на обеденный перерыв недоступна.")
 
-#     # Проверка лимита бронирований (3 на пользователя)
 #     user_bookings_count = sum(1 for b in bookings if b["user_id"] == data.user_id)
 #     if user_bookings_count >= 3:
-#         raise HTTPException(
-#             status_code=400,
-#             detail="Вы уже забронировали 3 машины. Отмените одну из них."
-#         )
+#         raise HTTPException(status_code=400, detail="Вы уже забронировали 3 машины. Отмените одну из них.")
 
-#     # Проверка корректности времени
 #     booking_start = datetime.strptime(f"{data.booking_date} {data.booking_start_time}", "%Y-%m-%d %H:%M")
 #     booking_end = datetime.strptime(f"{data.booking_date} {data.booking_end_time}", "%Y-%m-%d %H:%M")
-    
 #     if booking_start < datetime.now():
-#         raise HTTPException(
-#             status_code=400,
-#             detail="Невозможно забронировать машину на прошедшее время."
-#         )
-
+#         raise HTTPException(status_code=400, detail="Невозможно забронировать машину на прошедшее время.")
 #     if booking_start >= booking_end:
-#         raise HTTPException(
-#             status_code=400,
-#             detail="Время начала бронирования должно быть раньше времени окончания."
-#         )
+#         raise HTTPException(status_code=400, detail="Время начала бронирования должно быть раньше времени окончания.")
 
-#     # Проверка пересечений с существующими бронированиями
 #     for b in bookings:
 #         if b["car_id"] == data.car_id and b["booking_date"] == data.booking_date:
 #             existing_start = datetime.strptime(f"{b['booking_date']} {b['booking_start_time']}", "%Y-%m-%d %H:%M")
 #             existing_end = datetime.strptime(f"{b['booking_date']} {b['booking_end_time']}", "%Y-%m-%d %H:%M")
-            
-#             if (booking_start < existing_end and booking_end > existing_start):
-#                 raise HTTPException(
-#                     status_code=400,
-#                     detail="Машина уже забронирована в выбранный интервал времени."
-#                 )
+#             if booking_start < existing_end and booking_end > existing_start:
+#                 raise HTTPException(status_code=400, detail="Машина уже забронирована в выбранный интервал времени.")
 
-#     # Добавление бронирования
-#     selected_car = next((car for car in cars if car["id"] == data.car_id), None)
+#     # Поиск машины
+#     selected_car = next((car for car in cars if car["car_id"] == data.car_id), None)
+
 #     if not selected_car:
 #         raise HTTPException(status_code=404, detail="Машина не найдена.")
 
-#     bookings.append({
+#     new_booking = {
+#         "booking_id": next_booking_id,
 #         "car_id": data.car_id,
 #         "user_name": data.user_name,
 #         "user_id": data.user_id,
@@ -253,14 +451,17 @@
 #         "booking_date": data.booking_date,
 #         "booking_start_time": data.booking_start_time,
 #         "booking_end_time": data.booking_end_time
-#     })
+#     }
 
+#     bookings.append(new_booking)
+#     next_booking_id += 1
 #     save_bookings()
 
 #     return {
 #         "status": "success",
 #         "message": f"{selected_car['model']} забронирована на {data.booking_date} с {data.booking_start_time} до {data.booking_end_time}!"
 #     }
+
 
 # @app.post("/cancel_booking")
 # async def cancel_booking(data: CancelBookingRequest):
@@ -332,8 +533,6 @@ import pathlib
 import json
 import os
 
-# TELEGRAM_BOT_TOKEN = "7946576799:AAHHd35iRAv317TGUY6dBAfG8f3VKEXuy1w"
-
 app = FastAPI()
 
 app.add_middleware(
@@ -346,19 +545,6 @@ app.add_middleware(
 
 app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory="templates")
-
-# cars = [
-#     {"id": 1, "model": "Toyota Corolla", "description": "Удобный и экономичный седан. Простой в обслуживании, надёжный на любых дорогах.",
-#      "photo_url": "/static/toyota.webp", "available": True},
-#     {"id": 2, "model": "BMW 3 Series", "description": "Спортивный и стильный седан. Отличается динамичным управлением и высоким комфортом.",
-#      "photo_url": "/static/bmw.webp", "available": True},
-#     {"id": 3, "model": "Volkswagen Polo", "description": "Немецкое качество. Устойчив на дороге и прост в обслуживании.",
-#     "photo_url": "/static/polo.webp", "available": True},
-#     {"id": 4, "model": "Hyundai Solaris", "description": "Популярный учебный авто. Комфортный и манёвренный.",
-#     "photo_url": "/static/solaris.jpg", "available": True},
-#     {"id": 5, "model": "Kia Rio", "description": "Надёжный и экономичный седан. Лёгок в управлении.",
-#     "photo_url": "/static/kio.jpg", "available": True}
-# ]
 
 bookings = []
 BOOKINGS_FILE = "bookings.json"
@@ -444,7 +630,7 @@ def edit_car_form(car_id: int):
 
     car = next((c for c in cars if c["car_id"] == car_id), None)
     if not car:
-        return HTMLResponse("Машина не найдена", status_code=404)
+        return HTMLResponse("инструктор не найден", status_code=404)
 
     return templates.TemplateResponse("edit_car.html", {"request": {}, "car": car})
 
@@ -526,18 +712,6 @@ async def delete_booking(booking_id: int):
     bookings = [b for b in bookings if b.get("booking_id") != booking_id]
     save_bookings()
     return RedirectResponse(url="/admin", status_code=status.HTTP_303_SEE_OTHER)
-
-# @app.get("/admin/edit/{booking_id}")
-# def edit_booking_form(request: Request, booking_id: int):
-#     bookings = load_bookings()
-#     booking = next((b for b in bookings if b["booking_id"] == booking_id), None)
-#     if not booking:
-#         return HTMLResponse(content=f"<h3>Бронирование с ID {booking_id} не найдено</h3>", status_code=404)
-#     return templates.TemplateResponse("edit_booking.html", {
-#         "request": request,
-#         "booking": booking,
-#         "cars": cars  # <-- передаем список машин
-#     })
 
 @app.get("/admin/edit/{booking_id}")
 def edit_booking_form(request: Request, booking_id: int):
@@ -629,45 +803,6 @@ async def edit_booking(
     save_bookings()
 
     return RedirectResponse(url="/admin", status_code=303)
-# @app.post("/admin/edit/{booking_id}")
-# async def edit_booking(
-#     booking_id: int,
-#     request: Request,
-#     car_id: str = Form(...),  # Принимаем как строку
-#     user_name: str = Form(...),
-#     model: str = Form(...),
-#     booking_date: str = Form(...),
-#     booking_start_time: str = Form(...),
-#     booking_end_time: str = Form(...),
-#     description: str = Form(...),
-#     photo_url: str = Form(...)
-# ):
-#     try:
-#         # Преобразуем в int
-#         car_id_int = int(car_id)
-#     except ValueError:
-#         return {"error": "car_id должен быть числом"}
-        
-#     global bookings
-#     load_bookings()  # обновляем глобальный bookings
-#     booking = next((b for b in bookings if b["booking_id"] == booking_id), None)
-#     if not booking:
-#         return HTMLResponse(content=f"<h3>Бронирование с ID {booking_id} не найдено</h3>", status_code=404)
-
-#     # Обновляем данные бронирования
-#     booking["user_name"] = user_name
-#     booking["booking_date"] = booking_date
-#     booking["booking_start_time"] = booking_start_time
-#     booking["booking_end_time"] = booking_end_time
-
-#     booking["model"] = model
-#     booking["car_id"] = car_id
-#     booking["description"] = description
-#     booking["photo_url"] = photo_url
-
-#     save_bookings()
-
-#     return RedirectResponse(url="/admin", status_code=303)
 
 @app.get("/")
 async def get_index():
@@ -675,15 +810,10 @@ async def get_index():
     with open(index_path, "r", encoding="utf-8") as f:
         return HTMLResponse(content=f.read(), status_code=200)
 
-# @app.get("/cars")
-# async def get_cars():
-#     return {"cars": cars} 
-
 @app.get("/cars")
 async def get_cars():
     cars = load_cars()
     return {"cars": cars}
-
 
 class BookingRequest(BaseModel):
     car_id: int
@@ -764,13 +894,13 @@ async def update_booking(data: UpdateBookingRequest):
             if (booking_start < existing_end and booking_end > existing_start):
                 raise HTTPException(
                     status_code=400,
-                    detail="Машина уже забронирована в выбранный интервал времени."
+                    detail="Инструктор уже забронирован в выбранный интервал времени."
                 )
     
     # 4. Добавляем данные машины (исправлено car["id"] на car["car_id"])
     selected_car = next((car for car in cars if car["car_id"] == data.new_car_id), None)
     if not selected_car:
-        raise HTTPException(status_code=404, detail="Машина не найдена")
+        raise HTTPException(status_code=404, detail="Инструктор не найден")
     
     new_booking.update({
         "model": selected_car["model"],
@@ -806,12 +936,12 @@ async def choose_car(data: BookingRequest):
 
     user_bookings_count = sum(1 for b in bookings if b["user_id"] == data.user_id)
     if user_bookings_count >= 3:
-        raise HTTPException(status_code=400, detail="Вы уже забронировали 3 машины. Отмените одну из них.")
+        raise HTTPException(status_code=400, detail="Вы уже забронировали 3 инструкторов. Отмените одно из бронирований.")
 
     booking_start = datetime.strptime(f"{data.booking_date} {data.booking_start_time}", "%Y-%m-%d %H:%M")
     booking_end = datetime.strptime(f"{data.booking_date} {data.booking_end_time}", "%Y-%m-%d %H:%M")
     if booking_start < datetime.now():
-        raise HTTPException(status_code=400, detail="Невозможно забронировать машину на прошедшее время.")
+        raise HTTPException(status_code=400, detail="Невозможно забронировать инструктора на прошедшее время.")
     if booking_start >= booking_end:
         raise HTTPException(status_code=400, detail="Время начала бронирования должно быть раньше времени окончания.")
 
@@ -820,13 +950,13 @@ async def choose_car(data: BookingRequest):
             existing_start = datetime.strptime(f"{b['booking_date']} {b['booking_start_time']}", "%Y-%m-%d %H:%M")
             existing_end = datetime.strptime(f"{b['booking_date']} {b['booking_end_time']}", "%Y-%m-%d %H:%M")
             if booking_start < existing_end and booking_end > existing_start:
-                raise HTTPException(status_code=400, detail="Машина уже забронирована в выбранный интервал времени.")
+                raise HTTPException(status_code=400, detail="инструктор уже забронирован в выбранный интервал времени.")
 
     # Поиск машины
     selected_car = next((car for car in cars if car["car_id"] == data.car_id), None)
 
     if not selected_car:
-        raise HTTPException(status_code=404, detail="Машина не найдена.")
+        raise HTTPException(status_code=404, detail="Инструктор не найден.")
 
     new_booking = {
         "booking_id": next_booking_id,
@@ -847,7 +977,7 @@ async def choose_car(data: BookingRequest):
 
     return {
         "status": "success",
-        "message": f"{selected_car['model']} забронирована на {data.booking_date} с {data.booking_start_time} до {data.booking_end_time}!"
+        "message": f"{selected_car['model']} забронирован на {data.booking_date} с {data.booking_start_time} до {data.booking_end_time}!"
     }
 
 
@@ -891,7 +1021,7 @@ async def get_bookings(user_id: int = Query(...)):
 
 @app.get("/car_bookings")
 async def get_car_bookings(car_id: int = Query(...), date: str = Query(None)):
-    """Возвращает все бронирования для указанной машины (опционально - на конкретную дату)"""
+    """Возвращает все бронирования для указанного инструктора (опционально - на конкретную дату)"""
     car_bookings = []
     for booking in bookings:
         if booking["car_id"] == car_id:

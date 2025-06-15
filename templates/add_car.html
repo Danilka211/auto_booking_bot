@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Добавить машину | Админ-панель</title>
+    <title>Добавить инструктора | Админ-панель</title>
     <style>
         :root {
             --primary: #4361ee;
@@ -159,11 +159,11 @@
 <body>
     <div class="container">
         <a href="/admin/cars" class="btn btn-back">← Назад к списку</a>
-        <h2>Добавить новую машину</h2>
+        <h2>Добавить нового инструктора</h2>
         
         <form method="post" action="/admin/cars/add">
             <div class="form-group">
-                <label for="model">Модель:</label>
+                <label for="model">Имя:</label>
                 <input type="text" id="model" name="model" required>
             </div>
             
@@ -178,7 +178,7 @@
             </div>
             
             <div class="btn-container">
-                <button type="submit" class="btn btn-add">Добавить машину</button>
+                <button type="submit" class="btn btn-add">Добавить инструктора</button>
             </div>
         </form>
     </div>
