@@ -80,6 +80,12 @@
         border-color: #2ecc71; /* Зелёная граница */
     }
 
+        input[readonly] {
+        background-color: #f5f5f5;
+        border: 1px solid #ddd;
+        cursor: not-allowed;
+    }
+
     .time-slot.unavailable {
         background-color: #e74c3c;
         color: white;
@@ -217,8 +223,8 @@
         <input type="hidden" id="car_description_input" name="description" value="{{ booking.description }}">
         <input type="hidden" id="car_photo_input" name="photo_url" value="{{ booking.photo_url }}">
 
-        <label>Имя пользователя:</label>
-        <input type="text" name="user_name" value="{{ booking.user_name }}" required>
+       <label>Имя пользователя:</label>
+       <input type="text" name="user_name" value="{{ booking.user_name }}" readonly>
 
         <label>Дата бронирования:</label>
         <input type="date" id="booking_date" name="booking_date" value="{{ booking.booking_date }}" required>
